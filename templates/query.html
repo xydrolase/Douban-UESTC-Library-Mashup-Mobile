@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}查询: {{keyword}}{% endblock %}
+{% block body %}
+    <h1>{{feed.title.text}} ({{feed.total_results.text}})</h1>
+    {% if pager %}
+    <div class="notify">
+        <span class="pager"><a href="{{current_uri}}&index=0">&lt;</a></span>
+        {% for p in pager %}
+        {% ifequal p index %}
+        <span class="nickname">{{p}}</span>
+        {% else %}
+        <span class="pager"><a href="{{current_uri}}&index={{p}}">{{p}}</a></span>
+        {% endifequal %}
+        {% endfor %}
+        <span class="pager"><a href="{{current_uri}}&index={{feed.total_results.text}}">&gt;</a></span>
+    </div>
+    {% endif %}
+    {% if feed.entry %}
+    <ul class="booklist">    
+        {% for bk in feed.entry %}
+        <li>        
+            <img class="cover" src="{{bk.GetImageLink.href}}" />
+            <ul class="infolist">
+                <li><span class="item"><a target="_blank" href="{{bk.GetAlternateLink.href}}">{{bk.title.text}}</a></span> (<span class="nickname">{{bk.book_count}}本馆藏, {{bk.book_available}}本可借阅 <a href="/loc/{{bk.isbn_string}}">查看</a>)</li>
+                <li><span class="tag">评分</span>: {{bk.rating.average}} ({{bk.rating.numRaters}}人评价)</li>
+                <li><span class="tag">作者</span>: {{bk.author_list}}</li>
+                <li>{{bk.attributes}}</li>
+            </ul>
+            <br style="clear:both;" />
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <h3>... 什么都没有找到... </h3>
+    {% endif %}
+    <div>
+        <form action="/q/" method="get">
+            图书名/ISBN/标签: <input type="text" name="keywords" value="{{keyword}}" />
+            <select id="method" name="method"> 
+                <option value="keyword">书名</option>
+                <option value="isbn">ISBN</option>
+                <option value="tag">标签</option>
+            </select> 
+            <input type="submit" value="查询" />    
+        </form>
+    </div>
+{% endblock %}

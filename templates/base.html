@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="utf-8" lang="utf-8"> 
+<head> 
+    <title>{% block title %} {% endblock %}</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="用于移动设备便捷查询豆瓣图书信息和电子科技大学图书馆馆藏信息的工具." /> 
+    <meta name="keywords" content="豆瓣, 图书, 电子科技大学, UESTC, libdb, tremblefrog, killkeeper" />
+    <link rel="icon" type="image/png" href="/static/favicon.ico" /> 
+    <link href="/static/css/layout.css" rel="stylesheet" type="text/css"/>
+    {% block head %} {% endblock %}
+</head>
+<body>
+    <div id="header">
+        <h1>豆瓣-电子科大馆藏查询 MOBILE</h1>
+        {% if user_login %}
+        <span class="item nickname">{{ user.nickname }}</span> | <span class="item"><a href="{{ logout_url|escape }}">退出</a></span>
+        {% else %}
+        <span class="item"><a href="{{ login_url|escape }}">登录</a></span>
+        {% endif %}
+    </div>
+    
+    {% if not user_login %}
+    <div class="notify">
+        提示: 您可以使用您的Google Account登录以保存您的借书清单
+        <p><span class="item"><a href="{{ login_url|escape }}">登录</a></span></p>
+    </div>
+    {% endif %}
+        
+    <div id="content">
+        {% block body %}{% endblock %}
+    </div>
+    
+    <div id="footer">
+        Links: 
+        <ul class="footer_list">
+            <li><a href="http://www.douban.com">豆瓣</a></li>
+            <li><a href="http://webpac.uestc.edu.cn">电子科大图书馆</a></li>
+            <li><img src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" 
+alt="Powered by Google App Engine" /></li>
+        </ul>
+        <p>&copy; 2010 by <a href="http://tremblefrog.org">killkeeper</p>
+    </div>
+
+</body>
+</html>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-12281844-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>

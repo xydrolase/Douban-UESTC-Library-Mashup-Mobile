@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}豆瓣-成电馆藏查询 Mobile{% endblock %}
+{% block body %}
+    <h1>查询图书信息...</h1>
+    <form action="/q/" method="get">
+        图书名/ISBN/标签: <input type="text" name="keywords" />
+        <select id="method" name="method"> 
+            <option value="keyword">书名</option>
+            <option value="isbn">ISBN</option>
+            <option value="tag">标签</option>
+        </select> 
+        <input type="submit" value="查询" />    
+    </form>
+{% endblock %}

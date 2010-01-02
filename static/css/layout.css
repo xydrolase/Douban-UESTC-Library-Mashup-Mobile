@@ -1,0 +1,118 @@
+body{
+    font-family:"Lucida Grande",arial,helvetica,sans-serif;
+    font-size:12px;
+    font-weight:lighter;
+    line-height:18px;
+    color:#454547;
+}
+
+#content h1{
+    margin-bottom:10px;
+    font-family:helvetica,arial,sans-serif;
+    font-size:18px;
+    line-height:1.3em;
+    color:#008bba;
+    font-weight:bold;
+}
+
+.nickname{
+    color:#d34887;
+    font-size:14px;
+    font-weight:bold;
+}
+
+a, a:visited {
+	color: #336699;
+	text-decoration: none;
+}
+
+a:hover {
+	background:#003399;
+	color:#FFFFFF;
+	text-decoration: none;
+}
+
+#header {
+	padding: 4px;
+	margin: 5px;
+	border-bottom: 1px solid #AAA;
+	padding: 5px;
+}
+
+#header h1{
+    color:#d34887;
+    font-size:18px;
+}
+
+div.notify {
+    background: #FFFFDF;
+	margin: 5px;
+	border: 1px solid #AAA;
+	padding: 5px;
+	text-align: center;
+}
+
+#footer{
+    padding:5px;
+    border-top:1px solid #ccc;
+    margin-top: 10px;
+    text-align:center;
+}
+
+ul.footer_list{
+    display: inline;
+}
+
+ul.footer_list li{
+    margin-left: 5px;
+    display: inline;
+}
+
+span.item a{
+    font-size:14px;
+    font-weight:bold;
+}
+
+span.tag{
+    font-weight:bold;
+    color:#666;
+}
+
+span.pager a{
+    font-size:14px;
+    font-weight:bold;
+    text-decoration:underline;
+    
+}
+
+img.cover {
+    margin: 5px;
+    border: none;
+    float:left;
+}
+
+ul.booklist {
+    padding:5px;
+    list-style-type: decimal;
+    
+}
+
+ul.booklist li{
+    padding:10px;
+    background:#EEF9EB;
+    border-bottom: 1px solid #aaa;
+}
+
+ul.booklist li ul.infolist{
+    list-style-type: none;
+    display:inline;
+    float:left;
+    margin-left:10px;
+    padding:5px;
+}
+
+ul.booklist li ul.infolist li{
+    padding:0;
+    margin:2px 0px 0px 5px;
+    border: none;
+}

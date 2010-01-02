@@ -1,0 +1,5 @@
+Douban-UESTC Library Mashup Mobile is a GAE driven website for inquirying books reservation for your favorable books on douban.com. Different from libdb(http://tremblefrog.org/libdb), which is designed as a bookmarklet/Greasemonkey script, this project mainly concerns a handy approach of accessing both douban and library information on your portable devices.
+
+You fill find a great convenience using the new website version of libdb. Logging with your Google Accounts, we provide services to store your favorite books in a list, to notify the deadline of borrowing, to automatically renew your books, and to sync your booklist on douban.com.
+
+query_isbn.php creates an interface for proxying the inquiries by synthesizing multiple requests on a server with significant shorter network latency(not the GAE server).
