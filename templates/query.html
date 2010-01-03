@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}查询: {{keyword}}{% endblock %}
 {% block body %}
+    {% if feed %}
     <h1>{{feed.title.text}} ({{feed.total_results.text}})</h1>
     {% if pager %}
     <div class="notify">
@@ -31,7 +32,11 @@
         {% endfor %}
     </ul>
     {% else %}
-    <h3>... 什么都没有找到... </h3>
+    <h3>... 什么都没有找到 ... </h3>
+    {% endif %}
+    {% else %}
+    <h1>搜索 ISBN: {{keyword}} (0)</h1>
+    <h3>... 什么都没有找到 ... </h3>
     {% endif %}
     <div>
         <form action="/q/" method="get">

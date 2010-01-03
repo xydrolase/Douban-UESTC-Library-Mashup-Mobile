@@ -24,6 +24,7 @@ import douban.service
 from library import *
 import os, re
 from config import *
+from gdata.service import RequestError
 
 client = douban.service.DoubanService(server=SERVER,
                     api_key=API_KEY,secret=SECRET)
@@ -95,42 +96,61 @@ class SearchHandler(BaseHandler):
             
         if method == 'isbn':
             uri = '/book/subject/isbn/%s' % keyword
+            try:
+                entry = client.GetBook(uri)
+                if entry and entry.title.text:
+                    hack_gdata(entry)
+                    cache_blob(entry)
+                    self.redirect("/loc/%s" % entry.isbn_string)    # jump to the details page
+            except RequestError:
+                self.render_to_response('query.html', {'feed': None, 'keyword': keyword, 'index': 0, 'pager': None})    # render a "not found" page
+                               
         elif method == 'keyword':
             feed = client.SearchBook(keyword, max_results=5, start_index=index)
+            pager = page_indexer(0, int(feed.total_results.text), index=index)
             
-        lower_bound = index - 20
-        if lower_bound < 0: lower_bound = 0
-        upper_bound = int(feed.total_results.text) if index + 25 > int(feed.total_results.text) else index + 25
+        elif method == 'tag':
+            feed = client.QueryBookByTag(keyword, max_results=5, start_index=index)
+            pager = page_indexer(0, int(feed.total_results.text), index=index)
         
-        pager = range(lower_bound, upper_bound, 5)
-        isbn_group = []
-        if len(feed.entry):
-            for bk in feed.entry:
-                # hack the structure of feed by inserting some content into it
-                bk.isbn = [attr.text for attr in bk.attribute if attr.name in ('isbn10', 'isbn13')]
-                bk.isbn_string = "-".join(bk.isbn)
-                bk.author_list = ', '.join([author.name.text for author in bk.author])
-                attr_list = []
-                for attr in bk.attribute:
-                    if attr.name in ATTR2NAME:
-                        attr_list.append( '<span class="tag">%s</span>: %s' % (ATTR2NAME[attr.name], attr.text) )
+        if method in ('keyword', 'tag'):
+            isbn_group = []
+            if len(feed.entry):
+                for bk in feed.entry:
+                    # hack the structure of feed by inserting some content into it
+                    hack_gdata(entry)
+                    isbn_group.append(bk.isbn_string)   # prepare the search entries
+                    
+                    
+                # now search by once for all entries...
+                isbn = ','.join(isbn_group)
+                result_list = libm.query(isbn)
                 
-                bk.attributes = ' / '.join(attr_list)
-                isbn_group.append(bk.isbn_string)   # prepare the search entries
-                
-                
-            # now search by once for all entries...
-            isbn = ','.join(isbn_group)
-            result_list = libm.query(isbn)
-            
-            for x in range(len(result_list)):
-                bk = feed.entry[x]
-                bk.book_count, bk.book_available, bk.books = result_list[x]
-                cache_blob(bk) # write to cache
-            
+                for x in range(len(result_list)):
+                    bk = feed.entry[x]
+                    bk.book_count, bk.book_available, bk.books = result_list[x]
+                    cache_blob(bk) # write to cache
+                    
             self.render_to_response('query.html', {'feed': feed, 'keyword': keyword, 'index': int(index), 'pager': pager})
-        else:
-            self.render_to_response('query.html', {'feed': feed, 'keyword': keyword, 'index': int(index), 'pager': pager})
+            
+def hack_gdata(entry):
+    entry.isbn = [attr.text for attr in entry.attribute if attr.name in ('isbn10', 'isbn13')]
+    entry.isbn_string = "-".join(entry.isbn)
+    entry.author_list = ', '.join([author.name.text for author in entry.author])
+    
+    attr_list = []
+    for attr in entry.attribute:
+        if attr.name in ATTR2NAME:
+            attr_list.append( '<span class="tag">%s</span>: %s' % (ATTR2NAME[attr.name], attr.text) )
+    
+    entry.attributes = ' / '.join(attr_list)
+
+def page_indexer(start, end, index=0, step=5):
+    lower_bound = index - 20
+    if lower_bound < 0: lower_bound = 0
+    upper_bound = end if index + 25 > end else index + 25
+    
+    return range(lower_bound, upper_bound, step)
 
 def cache_blob(entry):
     key = '_'.join(['libdb', entry.isbn_string])
