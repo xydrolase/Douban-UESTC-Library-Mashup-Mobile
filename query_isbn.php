@@ -8,8 +8,8 @@
 	
 	require('dorm_db.php');
 	
-	if (isset($_GET['isbn'])){
-	    $isbn = $_GET['isbn'];
+	if (isset($_POST['isbn'])){
+	    $isbn = $_POST['isbn'];
 	    
 	    $libm = new LibraryMashUp($isbn);
 		$html = $libm->query_all();
