@@ -27,5 +27,6 @@ Contact me @ killkeeper at gmail dot com
     
 要将这个程序正确的运行, 您还需要安装一些第三方的Python库, 包括: gdata, atom和douban-python. 源代码中的query_isbn.php是一个图书馆数据查询的代理, 用于整合查询请求.  从而使用一次HTTP调用, 即可获得多本图书的馆藏信息, 避免因为过多的urlfetch调用, 使得GAE运行时间超时. 你可以将query_isbn.php部署在一台安装有PHP 5和memcached的机器上, 并请确保curl库已经正确安装, 同时, 此服务器对电子科大图书馆网站有较小的访问延迟.
 
-请记得修改config.py.default, 将留空的字段填上正确的参数即可, 最后将文件重命名为 config.py.default
+请记得修改config.py.default, 将留空的字段填上正确的参数即可, 最后将文件重命名为 config.py
 
+:)

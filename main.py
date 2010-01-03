@@ -103,8 +103,7 @@ class SearchHandler(BaseHandler):
                     cache_blob(entry)
                     self.redirect("/loc/%s" % entry.isbn_string)    # jump to the details page
             except RequestError:
-                self.render_to_response('query.html', {'feed': None, 'keyword': keyword, 'index': 0, 'pager': None})    # render a "not found" page
-                               
+                self.render_to_response('query.html', {'feed': None, 'keyword': keyword, 'index': 0, 'pager': None})    # render a "not found" page         
         elif method == 'keyword':
             feed = client.SearchBook(keyword, max_results=5, start_index=index)
             pager = page_indexer(0, int(feed.total_results.text), index=index)
@@ -118,9 +117,8 @@ class SearchHandler(BaseHandler):
             if len(feed.entry):
                 for bk in feed.entry:
                     # hack the structure of feed by inserting some content into it
-                    hack_gdata(entry)
+                    hack_gdata(bk)
                     isbn_group.append(bk.isbn_string)   # prepare the search entries
-                    
                     
                 # now search by once for all entries...
                 isbn = ','.join(isbn_group)
