@@ -2,7 +2,6 @@
 {% block title %}{{entry.title.text}} - 馆藏信息{% endblock %}
 {% block body %}
     <h1>{{entry.title}} ({{entry.book_count}}本馆藏, {{entry.book_available}}本可借阅)</h1>
-    {% if entry.book_count %}
     <ul class="booklist">    
         <li>        
             <img class="cover" src="{{entry.GetImageLink.href}}" />
@@ -14,6 +13,7 @@
             </ul>
             <br style="clear:both;" />
         </li>
+        {% if entry.book_count %}
         <li>
             <h3>馆藏分布(此结果具有1小时缓存):</h3>
             <h3>索书号: {{inq_no}}</h3>
@@ -25,14 +25,17 @@
             </ul>
             <br style="clear:both;" />
         </li>
+        {% else %}
+        <li>
+            <h3>对不起, 没有对应图书的馆藏信息 :(</h3>
+            <p>
+                提示: 一本图书可能有其他不同的版本, 或者来自不同的出版社.<br /><br />
+                您可以试试: <a href="http://webpac.uestc.edu.cn/search~S1*chx/?searchtype=t&searcharg='{{entry.title.text|escape}}'&searchscope=1&sortdropdown=-&SORT=D&extended=0">在电子科大图书馆检索<strong>{{entry.title.text}}</strong></a>
+            </p>
+        </li>
+        {% endif %}
     </ul>
-    {% else %}
-    <h3>对不起, 没有对应图书的馆藏信息 :(</h3>
-    <p>
-        提示: 一本图书可能有其他不同的版本, 或者来自不同的出版社.<br /><br />
-        您可以试试: <a href="http://webpac.uestc.edu.cn/search~S1*chx/?searchtype=t&searcharg='{{entry.title|escape}}'&searchscope=1&sortdropdown=-&SORT=D&extended=0">在电子科大图书馆检索{{entry.title}}</a>
-    </p>
-    {% endif %}
+    
     <div>
         <form action="/q/" method="get">
             图书名/ISBN/标签: <input type="text" name="keywords" value="{{keyword}}" />
