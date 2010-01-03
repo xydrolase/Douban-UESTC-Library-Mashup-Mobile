@@ -6,6 +6,11 @@ body{
     color:#454547;
 }
 
+#content {
+    padding:5px;
+    margin:5px;
+}
+
 #content h1{
     margin-bottom:10px;
     font-family:helvetica,arial,sans-serif;
@@ -33,10 +38,10 @@ a:hover {
 }
 
 #header {
-	padding: 4px;
+	padding: 5px;
 	margin: 5px;
 	border-bottom: 1px solid #AAA;
-	padding: 5px;
+	background:#EEEEEE;
 }
 
 #header h1{
@@ -61,6 +66,8 @@ div.notify {
 
 ul.footer_list{
     display: inline;
+    margin:2px 0px 0px 5px;
+    padding:2px;
 }
 
 ul.footer_list li{
@@ -71,6 +78,7 @@ ul.footer_list li{
 span.item a{
     font-size:14px;
     font-weight:bold;
+    margin-left:5px;
 }
 
 span.tag{

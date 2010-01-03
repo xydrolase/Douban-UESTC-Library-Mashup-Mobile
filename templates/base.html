@@ -11,12 +11,15 @@
 </head>
 <body>
     <div id="header">
-        <h1>豆瓣-电子科大馆藏查询 MOBILE</h1>
+        <a href="/"><img alt="郫县豆瓣 mobile" src="/static/images/logo.png" /></a><br />
         {% if user_login %}
-        <span class="item nickname">{{ user.nickname }}</span> | <span class="item"><a href="{{ logout_url|escape }}">退出</a></span>
+        <span class="item nickname">{{ user.nickname }}</span>, <span class="item"><a href="{{ logout_url|escape }}">退出</a></span>
         {% else %}
         <span class="item"><a href="{{ login_url|escape }}">登录</a></span>
         {% endif %}
+        <div style="text-align:right;">
+            <span class="item"><a href="/">郫县豆瓣</a></span> <span class="item"><a href="/about/">关于</a></span>
+        </div>
     </div>
     
     {% if not user_login %}
@@ -31,14 +34,15 @@
     </div>
     
     <div id="footer">
-        Links: 
+        <span class="nickname">LINKS</span> 
         <ul class="footer_list">
             <li><a href="http://www.douban.com">豆瓣</a></li>
             <li><a href="http://webpac.uestc.edu.cn">电子科大图书馆</a></li>
+            <li><a href="http://github.com/killkeeper/Douban-UESTC-Library-Mashup-Mobile">Source</a></li>
             <li><img src="http://code.google.com/appengine/images/appengine-silver-120x30.gif" 
 alt="Powered by Google App Engine" /></li>
         </ul>
-        <p>&copy; 2010 by <a href="http://tremblefrog.org">killkeeper</p>
+        <p>&copy; 2010 by <a href="http://tremblefrog.org">killkeeper</a>, SynX Studio</p>
     </div>
 
 </body>

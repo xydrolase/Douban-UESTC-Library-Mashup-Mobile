@@ -63,6 +63,10 @@ class MainHandler(BaseHandler):
     def get(self):
         self.render_to_response('index.html', {})
 
+class AboutHandler(BaseHandler):
+    def get(self):
+        self.render_to_response('about.html', {})
+
 class ReservationHandler(BaseHandler):
     def get(self, isbn):
         key = '_'.join(['libdb', isbn])
@@ -136,7 +140,8 @@ def main():
   application = webapp.WSGIApplication([
     ('/', MainHandler),
     ('/q/', SearchHandler ),
-    ('/loc/(.+)', ReservationHandler)
+    ('/loc/(.+)', ReservationHandler),
+    ('/about/', AboutHandler),
     #('/mine/', UserHandler),
   ], debug=True)
   util.run_wsgi_app(application)
