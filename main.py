@@ -112,6 +112,8 @@ class ReservationHandler(BaseHandler):
                 return
             
         inq_no = blob.books[0]['inq_no'] if blob.book_count else None
+        blob.floor, blob.category = parse_index(inq_no) # get the where the book locates, and the category of the book
+        
         user = users.get_current_user()
         task = BookTask.all().filter('user = ', user).filter('index = ', inq_no).get() if user else None
         
@@ -197,10 +199,12 @@ class MineHandler(BaseHandler):
             for task in tasklist.tasks:
                 book = pickle.loads(task.blob)
                 book.index = task.index
+                book.floor, book.category = parse_index(book.index)
                 books.append(book)
-			        
-        self.render_to_response("mine.html", {'task_count': tasklist.count, 'books': books})
-				
+		
+            self.render_to_response("mine.html", {'task_count': tasklist.count, 'books': books})
+        else:
+            self.render_to_response("mine.html", {'task_count': 0, 'books': None})
 		
 class SearchHandler(BaseHandler):
     def get(self):

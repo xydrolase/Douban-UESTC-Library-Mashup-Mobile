@@ -21,8 +21,14 @@
                 {% for ins in entry.books %}
                 <li><span class="nickname">{{ins.available}}</span> <span class="tag">馆藏地</span>: {{ins.loc}}</li>
                 {% endfor %}
-                
             </ul>
+            {% if entry.floor and entry.category %}
+            <ul class="infolist">
+            <li><span class="nickname">楼层:</span> 清水河图书馆{{entry.floor}}楼</li>
+            <li><span class="nickname">分类:</span> {{entry.category}}</li>
+            </ul>
+            {% endif %}
+            
             <br style="clear:both;" />
         </li>
         {% else %}
