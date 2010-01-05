@@ -81,6 +81,25 @@ span.item a{
     margin-left:5px;
 }
 
+ul.ops{
+	display:inline;
+	margin:2px 0 2px 5px;
+	padding:5px;
+}
+
+ul.ops li{
+	display:inline;
+}
+
+ul.ops li a{
+	background:#f5873d;
+	color:#fff;
+	padding:3px;
+	font-size:14px;
+	font-weight:bold;
+}
+
+
 span.tag{
     font-weight:bold;
     color:#666;
@@ -91,6 +110,14 @@ span.pager a{
     font-weight:bold;
     text-decoration:underline;
     
+}
+
+span.button a{
+    background:#f5873d;
+	color:#fff;
+	padding:3px;
+	font-size:14px;
+	font-weight:bold;
 }
 
 img.cover {
