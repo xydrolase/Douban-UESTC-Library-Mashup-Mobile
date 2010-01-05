@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}我的郫县豆瓣坛子{% endblock %}
+{% block body %}
+    {% if task_count %}
+    <h1>借阅列表 - ({{task_count}} 本图书)</h1>
+    {% if pager %}
+    <div class="notify">
+        <span class="pager"><a href="{{current_uri}}&index=0">&lt;</a></span>
+        {% for p in pager %}
+        {% ifequal p index %}
+        <span class="nickname">{{p}}</span>
+        {% else %}
+        <span class="pager"><a href="{{current_uri}}&index={{p}}">{{p}}</a></span>
+        {% endifequal %}
+        {% endfor %}
+        <span class="pager"><a href="{{current_uri}}&index={{feed.total_results.text}}">&gt;</a></span>
+    </div>
+    {% endif %}
+    {% if books %}
+    <ul class="booklist">    
+        {% for book in books %}
+        <li>        
+            <img class="cover" src="{{book.GetImageLink.href}}" />
+            <ul class="infolist">
+                <li><span class="item"><a target="_blank" href="{{task.book.GetAlternateLink.href}}">{{book.title.text}}</a></span></li>
+                <li><span class="tag">作者</span>: {{book.author_list}}</li>
+                <li><span class="tag">索书号</span>: <span class="nickname">{{book.index}}</span>
+                <li><span class="button"><a href="/remove/{{book.isbn_string}}">- 移除</a></span></li>
+            </ul>
+            <br style="clear:both;" />
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <h3>... 什么都没有找到 ... </h3>
+    {% endif %}
+    {% else %}
+    <h1>搜索 ISBN: {{keyword}} (0)</h1>
+    <h3>... 什么都没有找到 ... </h3>
+    {% endif %}
+{% endblock %}

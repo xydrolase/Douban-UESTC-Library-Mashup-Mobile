@@ -13,12 +13,12 @@
     <div id="header">
         <a href="/"><img alt="郫县豆瓣 mobile" src="/static/images/logo.png" /></a><br />
         {% if user_login %}
-        <span class="item nickname">{{ user.nickname }}</span>, <span class="item"><a href="{{ logout_url|escape }}">退出</a></span>
+        <span class="item nickname">{{ user.nickname }}</span>, <span class="item"><a href="/mine/">我的郫县豆瓣</a></span> <span class="item"><a href="{{ logout_url|escape }}">退出</a></span>
         {% else %}
         <span class="item"><a href="{{ login_url|escape }}">登录</a></span>
         {% endif %}
         <div style="text-align:right;">
-            <span class="item"><a href="/">郫县豆瓣</a></span> <span class="item"><a href="/about/">关于</a></span>
+            <span class="item"><a href="/">首页</a></span> <span class="item"><a href="/about/">关于</a></span>
         </div>
     </div>
     

@@ -35,7 +35,17 @@
         </li>
         {% endif %}
     </ul>
-    
+    {% if user_login %}
+    <div class="notify">
+    	<ul class="ops">
+    	    {% if task %}
+    	    <li>此书在您的借书列表中, <a href="/remove/{{entry.isbn_string}}">- 移除</a></li>
+    	    {% else %}
+    	    <li><a href="/collect/{{entry.isbn_string}}">+ 借书列表</a></li>
+    	    {% endif %}
+    	</ul>
+    </div>
+    {% endif %}
     <div>
         <form action="/q/" method="get">
             图书名/ISBN/标签: <input type="text" name="keywords" value="{{keyword}}" />

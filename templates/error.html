@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}出错啦{% endblock %}
+{% block body %}
+    <h1>出错啦...</h1>
+    <p>
+        很抱歉, 因为程序出错, 您的请求未能完成. 可能的错误描述如下: 
+    </p>
+    <div class="notify">
+        {{error}}
+        <p>
+            <span class="tag"><a href="/">返回首页</a></span>
+            {% if referer %}
+            <span class="tag"><a href="{{referer}}">返回您刚才浏览的页面</a></span>
+            {% endif %}
+        </p>
+    </div>
+{% endblock %}

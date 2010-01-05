@@ -22,8 +22,9 @@ from google.appengine.api import memcache
 from google.appengine.api import users
 import douban.service
 from library import *
-import os, re
+import os, re, pickle
 from config import *
+from models import *
 from gdata.service import RequestError
 
 client = douban.service.DoubanService(server=SERVER,
@@ -33,7 +34,24 @@ pager_re = re.compile('\&index=\d+')
                     
 ATTR2NAME = {'price': '价格', 'publisher': '出版社', 'pubdate':'出版时间', 'translator': '译者'}
 
+ERR_URLFETCH_FAILED = 1
+ERR_ENTRY_NOT_FOUND = 2
+
 class BaseHandler(webapp.RequestHandler):
+    ERR_INFO = {
+                ERR_URLFETCH_FAILED: '无法读取图书馆馆藏信息',
+                ERR_ENTRY_NOT_FOUND: '无法找到您指定的条目或内容'
+            }
+    
+    def back(self):
+        referer = self.request.headers.get('Referer', '/')
+        self.redirect(referer)
+	
+    def terminate(self, errno):
+        err_info = self.ERR_INFO.get(errno, '未知的程序错误')
+        referer = self.request.headers.get('Referer', None)
+        self.render_to_response('error.html', {'error': err_info, 'referer':referer})
+        
     def template_path(self, filename):
         """Returns the full path for a template from its path relative to here."""
         return os.path.join('templates', filename)
@@ -74,14 +92,116 @@ class ReservationHandler(BaseHandler):
         blob = memcache.get(key)
         
         if not blob:
-            # our cache expires...
-            referer = self.request.headers.get('Referer', '/')
-            self.redirect(referer)  # jump to previous link
-        
-        
+            # our cache expires... we need to retrieve the information again
+            try:
+                libm = LibraryMashup()
+                uri = "/book/subject/isbn/%s" % isbn.split('-')[0]
+                blob = client.GetBook(uri)
+                if blob and blob.title.text:
+                    hack_gdata(blob)
+                    
+                    result = libm.query(blob.isbn_string)
+                    if not result: # if result is None, it means we encounter some errors
+                        self.terminate(ERR_URLFETCH_FAILED)
+                        return
+                        
+                    blob.book_count, blob.book_available, book.books = result[0]
+                    cache_blob(blob)
+            except RequestError:
+                self.render_to_response('query.html', {'feed': None, 'keyword': keyword, 'index': 0, 'pager': None})    # render a "not found" page 
+                return
+            
         inq_no = blob.books[0]['inq_no'] if blob.book_count else None
-        self.render_to_response('loc.html', {'entry': blob, 'inq_no': inq_no})
+        user = users.get_current_user()
+        task = BookTask.all().filter('user = ', user).filter('index = ', inq_no).get() if user else None
+        
+        self.render_to_response('loc.html', {'entry': blob, 'inq_no': inq_no, 'task': task})
 
+class CollectionHandler(BaseHandler):
+    def get(self, param):
+        req_path = self.request.path
+        if req_path.startswith("/collect/"):
+            self.collect(param)
+        elif req_path.startswith("/remove/"):
+            self.remove(param)
+    
+    def remove(self, isbn):
+        user = users.get_current_user()
+        isbn = isbn.split('-')[0].strip()
+        if not isbn or not user:
+            self.back()
+            return
+        
+        task = BookTask.all().filter('user = ', user).filter('isbn = ', isbn).get()
+        if task:
+            # found the matching instance
+            task.delete()
+            
+            # update the tasklist counter
+            tasklist = TaskList.all().filter('user = ', user).get()
+            if not tasklist:
+                tasklist = TaskList(user = user, count = 1) # starts with 1 since we need to minus 1 later
+            
+            tasklist.count -= 1
+            tasklist.put()  # update the counter
+        
+            self.redirect("/mine/") # redirect back to user's page
+        else:
+            self.terminate(ERR_ENTRY_NOT_FOUND)
+        
+        
+    def collect(self, isbn):
+        user = users.get_current_user()
+        key = '_'.join(['libdb', isbn])
+        blob = memcache.get(key)
+    
+        if not blob or not user: # our cache expires...
+            self.back()
+            return
+        
+        inq_no = blob.books[0]['inq_no']
+        
+        # check for duplicitity
+        task = BookTask.all().filter('user = ', user).filter('index = ', inq_no).get()
+        if task:
+            self.back() # found duplicate element... -.-
+            return
+        
+        # retrieve the tasklist, increase the counter
+        tasklist = TaskList.all().filter('user = ', user).get()
+        if not tasklist:
+            tasklist = TaskList(user = user, count = 0)
+        
+        tasklist.count += 1
+        tasklist.put()
+        
+        # insert a new booktask record into datastore
+        BookTask(user=user,
+            blob=pickle.dumps(blob),
+            index=inq_no,
+            isbn=isbn.split('-'),
+            tasklist=tasklist).put()	
+    
+        self.redirect("/mine/")
+
+class MineHandler(BaseHandler):
+    def get(self):
+        user = users.get_current_user()
+        if not user: 
+            self.back()
+            return
+    
+        tasklist = TaskList.all().filter('user = ', user).get()
+        if tasklist and tasklist.count:
+            books = []
+            for task in tasklist.tasks:
+                book = pickle.loads(task.blob)
+                book.index = task.index
+                books.append(book)
+			        
+        self.render_to_response("mine.html", {'task_count': tasklist.count, 'books': books})
+				
+		
 class SearchHandler(BaseHandler):
     def get(self):
         method = self.request.get("method")
@@ -100,6 +220,13 @@ class SearchHandler(BaseHandler):
                 entry = client.GetBook(uri)
                 if entry and entry.title.text:
                     hack_gdata(entry)
+                    result = libm.query(entry.isbn_string)
+                    
+                    if not result: # if result is None, it means we encounter some errors
+                        self.terminate(ERR_FAILED_URLFETCH)
+                        return
+                        
+                    entry.book_count, entry.book_available, entry.books = result[0]
                     cache_blob(entry)
                     self.redirect("/loc/%s" % entry.isbn_string)    # jump to the details page
             except RequestError:
@@ -124,13 +251,18 @@ class SearchHandler(BaseHandler):
                 isbn = ','.join(isbn_group)
                 result_list = libm.query(isbn)
                 
+                if not result_list: # if result is None, it means we encounter some errors
+                    self.terminate(ERR_FAILED_URLFETCH)
+                    return
+                
                 for x in range(len(result_list)):
                     bk = feed.entry[x]
                     bk.book_count, bk.book_available, bk.books = result_list[x]
                     cache_blob(bk) # write to cache
                     
             self.render_to_response('query.html', {'feed': feed, 'keyword': keyword, 'index': int(index), 'pager': pager})
-            
+
+
 def hack_gdata(entry):
     entry.isbn = [attr.text for attr in entry.attribute if attr.name in ('isbn10', 'isbn13')]
     entry.isbn_string = "-".join(entry.isbn)
@@ -152,7 +284,7 @@ def page_indexer(start, end, index=0, step=5):
 
 def cache_blob(entry):
     key = '_'.join(['libdb', entry.isbn_string])
-    memcache.add(key, entry, 1800)  # 30 min of caching
+    memcache.set(key, entry, 1800)  # 30 min of caching
 
 def main():
   application = webapp.WSGIApplication([
@@ -160,7 +292,9 @@ def main():
     ('/q/', SearchHandler ),
     ('/loc/(.+)', ReservationHandler),
     ('/about/', AboutHandler),
-    #('/mine/', UserHandler),
+    ('/collect/(.+)', CollectionHandler),
+    ('/remove/(.+)', CollectionHandler),
+    ('/mine/', MineHandler),
   ], debug=True)
   util.run_wsgi_app(application)
 
