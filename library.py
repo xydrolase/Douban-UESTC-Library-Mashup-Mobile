@@ -36,8 +36,13 @@ idx_re = re.compile('([A-Z]+)\d+\.\d+')
 
 def parse_index(idx):
     if idx:
-        prefix = idx_re.search(idx).groups()[0]
-        
+        srch = idx_re.search(idx)
+        if srch:
+            prefix = idx_re.search(idx).groups()[0]
+        else:
+            # not a valid indexing number
+            return None, None
+            
         floor = INDEX_2_FLOOR.get(idx[0], None)
         category = INDEX_2_CATEGORY.get(prefix, None)
         
