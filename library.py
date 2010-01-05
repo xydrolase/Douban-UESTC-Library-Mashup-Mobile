@@ -85,8 +85,11 @@ class LibraryMashup:
         if not isbn: return None
         
         param = urlencode( [('isbn', isbn)] )
-        response = urllib2.urlopen(self.API_ENTRY, param).read()
-        
+        try:
+            response = urllib2.urlopen(self.API_ENTRY, param).read()
+        except:
+            return None
+            
         response_group = response.split('<split />')
         if response_group and len(response_group):
             return [self.process(r) for r in response_group]
