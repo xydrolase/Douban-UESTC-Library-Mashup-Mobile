@@ -20,12 +20,14 @@ from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
 from google.appengine.api import users
+from google.appengine.api import urlfetch
 import douban.service
 from library import *
-import os, re, pickle
+import os, re, pickle, base64
 from config import *
-from models import *
+from models import *	# import Datastore models
 from gdata.service import RequestError
+import urllib
 
 client = douban.service.DoubanService(server=SERVER,
                     api_key=API_KEY,secret=SECRET)
@@ -44,10 +46,12 @@ class BaseHandler(webapp.RequestHandler):
             }
     
     def back(self):
+    	"""Redirect to the previous page the client was browsing"""
         referer = self.request.headers.get('Referer', '/')
         self.redirect(referer)
 	
     def terminate(self, errno):
+    	"""Renders error information to client"""
         err_info = self.ERR_INFO.get(errno, '未知的程序错误')
         referer = self.request.headers.get('Referer', None)
         self.render_to_response('error.html', {'error': err_info, 'referer':referer})
@@ -87,12 +91,13 @@ class AboutHandler(BaseHandler):
         self.render_to_response('about.html', {})
 
 class ReservationHandler(BaseHandler):
+	"""Retrieve books reservation status from library"""
     def get(self, isbn):
         key = '_'.join(['libdb', isbn])
         blob = memcache.get(key)
         
         if not blob:
-            # our cache expires... we need to retrieve the information again
+            # Cache expires
             try:
                 libm = LibraryMashup()
                 uri = "/book/subject/isbn/%s" % isbn.split('-')[0]
@@ -101,32 +106,47 @@ class ReservationHandler(BaseHandler):
                     hack_gdata(blob)
                     
                     result = libm.query(blob.isbn_string)
-                    if not result: # if result is None, it means we encounter some errors
+                    # if result is None, it means we encounter some errors
+                    if not result:
                         self.terminate(ERR_URLFETCH_FAILED)
                         return
                         
                     blob.book_count, blob.book_available, book.books = result[0]
-                    cache_blob(blob)
+                    cache_blob(blob)	# write blob into cache
             except RequestError:
                 self.render_to_response('query.html', {'feed': None, 'keyword': keyword, 'index': 0, 'pager': None})    # render a "not found" page 
                 return
-            
+        
         inq_no = blob.books[0]['inq_no'] if blob.book_count else None
-        blob.floor, blob.category = parse_index(inq_no) # get the where the book locates, and the category of the book
+        # get the where the book locates, and the category of the book
+        blob.floor, blob.category = parse_index(inq_no)
         
         user = users.get_current_user()
-        task = BookTask.all().filter('user = ', user).filter('index = ', inq_no).get() if user else None
+        task = BookTask.all().filter('user = ', user)\
+        		.filter('index = ', inq_no).get() if user else None
         
         self.render_to_response('loc.html', {'entry': blob, 'inq_no': inq_no, 'task': task})
 
 class CollectionHandler(BaseHandler):
+	"""Handles reqeusts for updating users' borrowing collections"""
     def get(self, param):
+    	"""GET /collect|remove/ISBN
+    	
+    	Creates or deletes an entry in user's collection with specific ISBN	
+    	"""
         req_path = self.request.path
         if req_path.startswith("/collect/"):
             self.collect(param)
         elif req_path.startswith("/remove/"):
             self.remove(param)
     
+    def post(self):
+    	"""POST /collect|remove/
+    	POST BODY: ?
+    	"""
+    	
+    	pass
+            
     def remove(self, isbn):
         user = users.get_current_user()
         isbn = isbn.split('-')[0].strip()
@@ -196,16 +216,32 @@ class MineHandler(BaseHandler):
         tasklist = TaskList.all().filter('user = ', user).get()
         if tasklist and tasklist.count:
             books = []
+            isbn_group = []
             for task in tasklist.tasks:
-                book = pickle.loads(task.blob)
-                book.index = task.index
+                book = pickle.loads(task.blob)	# deserilize the blob
+                book.index = task.index	# indexing number
+                # task.isbn stores as string list
+                isbn_group.append("-".join(task.isbn))
                 book.floor, book.category = parse_index(book.index)
                 books.append(book)
-		
+			
+            isbn_query = ",".join(isbn_group)
+            result_list = libm.query(isbn_query)
+            
+            # if result is None, it means we encounter some errors
+            if not result_list:
+                self.terminate(ERR_FAILED_URLFETCH)
+                return
+            
+            for x in range(len(result_list)):
+                bk = books[x]
+                bk.book_count, bk.book_available, bk.books = result_list[x]
+                cache_blob(bk)  # write to cache
+        
             self.render_to_response("mine.html", {'task_count': tasklist.count, 'books': books})
         else:
-            self.render_to_response("mine.html", {'task_count': 0, 'books': None})
-		
+            self.render_to_response("mine.html", {'task_count': 0, 'books': None}) 
+
 class SearchHandler(BaseHandler):
     def get(self):
         method = self.request.get("method")

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}我的郫县豆瓣坛子{% endblock %}
+{% block title %}我的郫县豆瓣{% endblock %}
 {% block body %}
     <h1>借阅列表 - ({{task_count}} 本图书)</h1>
     {% if pager %}
@@ -21,19 +21,19 @@
         <li>        
             <img class="cover" src="{{book.GetImageLink.href}}" />
             <ul class="infolist">
-                <li><span class="item"><a target="_blank" href="{{task.book.GetAlternateLink.href}}">{{book.title.text}}</a></span></li>
+                <li><span class="item"><a target="_blank" href="{{task.book.GetAlternateLink.href}}">{{book.title.text}}</a></span> (<span class="nickname">{{book.book_count}}本馆藏, {{book.book_available}}本可借阅 <a href="/loc/{{book.isbn_string}}">查看</a>)</li>
                 <li><span class="tag">作者</span>: {{book.author_list}}</li>
                 <li><span class="tag">索书号</span>: <span class="nickname">{{book.index}}</span>
                 {% if book.floor and book.category %}
                 <li><span class="tag">楼层:</span> 清水河图书馆{{book.floor}}楼 &middot;&middot; <span class="tag">分类:</span> {{book.category}}</li>
                 {% endif %}
-                <li><span class="button"><a href="/remove/{{book.isbn_string}}">- 移除</a></span></li>
+                <li><a href="/remove/{{book.isbn_string}}">&gt; 移除</a></li>
             </ul>
             <br style="clear:both;" />
         </li>
         {% endfor %}
     </ul>
     {% else %}
-    <h3>... 什么都没有找到 ... </h3>
+    <h3>... 暂时没有任何图书 ... </h3>
     {% endif %}
 {% endblock %}

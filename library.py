@@ -32,7 +32,7 @@ INDEX_2_FLOOR = {'T':2, 'U':2, 'V':2, 'X':2,
                 
 INDEX_2_CATEGORY = {'T':'工业技术','TB':'一般工业技术','TD':'矿业工程','TE':'石油, 天然气工业','TF':'冶金工业','TG':'金属学与金属工业','TH':'机械. 仪表工业','TJ':'武器工业','TK':'能源与动力工程','TL':'原子能技术','TM':'电工技术','TN':'无线电电子学, 电信技术','TP':'自动化技术, 计算机技术','TQ':'化学工业','TS':'轻工业, 手工业','TU':'建筑科学','TV':'水利工程','U':'交通运输','V':'航空航天','X':'环境科学, 安全科学','C':'社会科学总论','D':'政治, 法律','E':'军事','F':'经济','G':'文化, 科学, 教育, 体育','H':'语言, 文学','A':'马列主义, 毛泽东思想, 邓小平理论','B':'哲学, 宗教','C':'社会科学总论','I':'文学','J':'艺术','K':'历史, 地理','O':'数理科学和化学','P':'天文学, 地球科学','Q':'生物科学','R':'医药, 卫生','S':'农业科学','Z':'综合性图书'}
 
-idx_re = re.compile('([A-Z]+)\d+\.\d+')
+idx_re = re.compile('([A-Z]+)\d+(\.\d+)?')
 
 def parse_index(idx):
     if idx:
@@ -43,14 +43,14 @@ def parse_index(idx):
             # not a valid indexing number
             return None, None
             
-        floor = INDEX_2_FLOOR.get(idx[0], None)
+        floor = INDEX_2_FLOOR.get(idx[0], None)	# use initial to get floor
         category = INDEX_2_CATEGORY.get(prefix, None)
         
         return floor, category        
     else:
         return None, None
 
-class LibraryParser(HTMLParser):
+class LibReservParser(HTMLParser):
     STATES = {'field 1': STATE_LOC, 'field C': STATE_INQ_NO, 'field %': STATE_STATUS, 'field b': STATE_BARCODE, 'field !': STATE_RESERVED }
     
     tr_start = False
@@ -104,7 +104,7 @@ class LibraryMashup:
     TABLE_KEYWORDS = '<table width="100%" border="0" cellspacing="1" cellpadding="2" class="bibItems">'
     TR_SPLIT = '<tr  class="bibItemsEntry">'
     
-    parser = LibraryParser()
+    parser = LibReservParser()
     
     def query(self, isbn):
         if not isbn: return None
