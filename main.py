@@ -33,6 +33,7 @@ client = douban.service.DoubanService(server=SERVER,
                     api_key=API_KEY,secret=SECRET)
                     
 pager_re = re.compile('\&index=\d+')
+douban_re = re.compile('www.douban.com')
                     
 ATTR2NAME = {'price': '价格', 'publisher': '出版社', 'pubdate':'出版时间', 'translator': '译者'}
 
@@ -70,12 +71,14 @@ class BaseHandler(webapp.RequestHandler):
         user = users.get_current_user()
         user_logined = True if user else False
         
+        # remove the indexing parameter
         uri = re.sub('\&index\=\d+', '', self.request.uri)
         
         template_args.setdefault('current_uri', uri)
         template_args.setdefault('user_login', user_logined)
         template_args.setdefault('user', user)
-        template_args.setdefault('login_url', users.create_login_url(self.request.uri))
+        template_args.setdefault('login_url',
+        	users.create_login_url(self.request.uri))
         template_args.setdefault('logout_url', users.create_logout_url('/'))
         
         self.response.out.write(
@@ -233,6 +236,7 @@ class MineHandler(BaseHandler):
                 self.terminate(ERR_FAILED_URLFETCH)
                 return
             
+            # update the book's reservation information
             for x in range(len(result_list)):
                 bk = books[x]
                 bk.book_count, bk.book_available, bk.books = result_list[x]
@@ -300,18 +304,26 @@ class SearchHandler(BaseHandler):
                     bk.book_count, bk.book_available, bk.books = result_list[x]
                     cache_blob(bk) # write to cache
                     
-            self.render_to_response('query.html', {'feed': feed, 'keyword': keyword, 'index': int(index), 'pager': pager})
-
+            self.render_to_response('query.html', 
+            		{'feed': feed,  'keyword': keyword, 
+            		'index': int(index), 'pager': pager})
 
 def hack_gdata(entry):
-    entry.isbn = [attr.text for attr in entry.attribute if attr.name in ('isbn10', 'isbn13')]
+    entry.isbn = [attr.text for attr in entry.attribute \
+    	if attr.name in ('isbn10', 'isbn13')]
     entry.isbn_string = "-".join(entry.isbn)
     entry.author_list = ', '.join([author.name.text for author in entry.author])
+    
+    for link in entry.link:
+    	if link.rel == 'alternate':
+    		# replace the standard douban URL to mobile URL
+    		link.href = re.sub('www.douban.com', 'm.douban.com', link.href)
     
     attr_list = []
     for attr in entry.attribute:
         if attr.name in ATTR2NAME:
-            attr_list.append( '<span class="tag">%s</span>: %s' % (ATTR2NAME[attr.name], attr.text) )
+            attr_list.append( '<span class="tag">%s</span>: %s' %\
+            	 (ATTR2NAME[attr.name], attr.text) )
     
     entry.attributes = ' / '.join(attr_list)
 
@@ -324,7 +336,7 @@ def page_indexer(start, end, index=0, step=5):
 
 def cache_blob(entry):
     key = '_'.join(['libdb', entry.isbn_string])
-    memcache.set(key, entry, 1800)  # 30 min of caching
+    memcache.set(key, entry, 3600)  # 1 hour of caching
 
 def main():
   application = webapp.WSGIApplication([
@@ -337,7 +349,6 @@ def main():
     ('/mine/', MineHandler),
   ], debug=True)
   util.run_wsgi_app(application)
-
 
 if __name__ == '__main__':
   main()

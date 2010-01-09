@@ -92,7 +92,6 @@ Douban & UESTC Library Mashup
 				$http_code = $response['code'];
 				if ($http_code == 200){
 					// 200 OK indicates an error when logining
-					echo 'error when logining';
 					return null;
 				}
 				else if($http_code == 302){

@@ -19,6 +19,8 @@
 
 ######### RENAME THIS FILE TO config.py AFTER FINISHING CONFIGURATOIN!! ######
 
+TWITTER_AUTH = ['USERNAME', 'PASSWORD'] # your twitter account
+TWITTER_API = 'http://twitter.com/'
 API_KEY = ''    # your douban API key
 SECRET = ''                     # corresponding secret
 SERVER = 'api.douban.com'

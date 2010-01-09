@@ -10,10 +10,18 @@ handlers:
 - url: /favicon.ico
   static_files: static/favicon.ico
   upload: static/favicon.ico
-  
-- url: /my/.*
+
+- url: /collect/.*
   script: main.py
   login: required
   
+- url: /mine/.*
+  script: main.py
+  login: required
+
+- url: /twitter/.*
+  script: tinytwi.py
+  login: admin
+
 - url: .*
   script: main.py

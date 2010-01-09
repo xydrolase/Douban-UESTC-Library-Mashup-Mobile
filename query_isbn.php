@@ -1,10 +1,25 @@
 <?php
-	/* Douban & UESTC Library Mashup
+	
+/* Douban & UESTC Library Mashup
 		Version: 0.1.2.0
 		Author:	killkeeper
 			killkeeper AT gmail DOT com
 			http://tremblefrog.org
-	*/
+			
+# Copyright 2010 killkeeper.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/
 	
 	require('dorm_db.php');
 	
@@ -15,15 +30,6 @@
 		$html = $libm->query_all();
 	
 	    die($html);
-	}
-	
-	
-	function html_to_js_wrapper($html, $book_title){
-		$html = str_replace("\n", "", $html);
-		$book_title = htmlentities($book_title, ENT_QUOTES, "UTF-8"); // convert the special characters, specifically the quotes into safe html to prevent corruption of generated javascript
-		
-		$js = "$('#libdbDiv').hide('slow');\nshow_dialog('<h2 class=\"usf\">$book_title - 馆藏分布 &middot;&middot;&middot;&middot;</h2><div class=\"indent\"><ul class=\"bs\"><li><div style=\"max-height:250px; overflow-y:auto; height:200px;\">$html</div></li><li>(注意: 查询结果具有1小时的缓存, 您看到的可能不是即时的查询结果)</li></ul><p><input type=\"button\" onclick=\"close_dialog()\" value=\"关闭\" />');";
-		return $js;
 	}
 
 	class LibraryMashup{
