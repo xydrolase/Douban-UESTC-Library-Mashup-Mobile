@@ -15,9 +15,10 @@ You fill find a great convenience using the new website version of Douban-UESTC 
 * Memcached 1.2.x+
 
 To run this project correctly, you need to install serveral 3rd-party libraries:
-* *gdata-python-client*  `http://code.google.com/apis/gdata/`
-* *atom* (_provided in gdata-python-client_)
-* *douban-python*  `http://code.google.com/p/douban-python/`
+
+* [gdata-python-client](http://code.google.com/apis/gdata/)
+* atom (_provided in gdata-python-client_)
+* [douban-python](http://code.google.com/p/douban-python/)
 
 ## Installation
 
@@ -49,6 +50,7 @@ To run this project correctly, you need to install serveral 3rd-party libraries:
 You could contact me via email: `killkeeper _at_ gmail _dot_ com`,
 
 > If you are interested in me, you might:
+
 * Visit [my blog](http://tremblefrog.org/blog/)
 * Follow [@killkeeper](http://twitter.com/killkeeper) on Twitter
 
@@ -84,6 +86,7 @@ Please refer to the [issue list](http://github.com/killkeeper/Douban-UESTC-Libra
 * Memcached 1.2.x+
 
 要将这个程序正确的运行, 您还需要安装一些第三方的Python库, 包括:
+
 * [gdata-python-client](http://code.google.com/apis/gdata/)
 * atom (_provided in gdata-python-client_)
 * [douban-python](http://code.google.com/p/douban-python/)
@@ -122,6 +125,7 @@ Please refer to the [issue list](http://github.com/killkeeper/Douban-UESTC-Libra
 Email: `killkeeper _at_ gmail _dot_ com`
 
 > 如果你关注我的动态, 可以:
+
 * 访问 [我的Blog](http://tremblefrog.org/blog/)
 * Follow [@killkeeper](http://twitter.com/killkeeper) on Twitter
 
