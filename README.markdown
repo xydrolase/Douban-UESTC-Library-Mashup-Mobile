@@ -26,9 +26,9 @@ To run this project correctly, you need to install serveral 3rd-party libraries:
     $ git clone git@github.com:killkeeper/Douban-UESTC-Library-Mashup-Mobile.git
     
 **Step 2. Configure the website**
-    Modify _config.py.default_ with your favorite text-editor, assign your own Douban API Key and corresponding SECRET.
+    Modify `config.py.default` with your favorite text-editor, assign your own Douban API Key and corresponding SECRET.
     Specify a Twitter account to activate the twitter update feature in your admin console.
-    After finishing modifications, rename the filename to _config.py_.
+    After finishing modifications, rename the filename to `config.py`.
     
 **Step 3. Install the dependent libraries**
     Download the prerequisite libraries, install with setuptools.
@@ -100,9 +100,9 @@ Please refer to the [issue list](http://github.com/killkeeper/Douban-UESTC-Libra
     $ git clone git@github.com:killkeeper/Douban-UESTC-Library-Mashup-Mobile.git
     
 **Step 2. 配置参数**
-    修改 _config.py.default_, 设定你的豆瓣API Key和私钥.
+    修改 `config.py.default`, 设定你的豆瓣API Key和私钥.
     你可以指定一个Twitter账号, 以便在后台的建议twitter更新功能中发布项目的更新信息等等.
-    完成配置后, 将文件重命名为_config.py_.
+    完成配置后, 将文件重命名为`config.py`.
     
 **Step 3. 安装第三方库**
     请下载上述需求的第三方Python库, 正确安装后将其源码拷贝到本项目的源码根目录
