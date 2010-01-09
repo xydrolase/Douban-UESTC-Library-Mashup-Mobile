@@ -3,8 +3,8 @@
 GAE driven website enhanced by douban.com and UESTC library Webpac system. 
 Provides portal for searching your favorable books while fetching books reservation information simultaneously.
 
-> You could visit a deployed version of Douban-UESTC Library Mashup Mobile called "Pixian Douban" via http://dbutils.appspot.com/
-> This project is being developed on the basis of Project libdb(http://tremblefrog.org/libdb/), which provides Bookmarklet/Greasemonkey script service. Yet this project mainly concerns a handy approach of accessing book information on your portalbe devices.
+> You could visit a deployed version of Douban-UESTC Library Mashup Mobile called "Pixian Douban" via [http://dbutils.appspot.com/](http://dbutils.appspot.com/)
+> This project is being developed on the basis of [Project libdb](http://tremblefrog.org/libdb/), which provides Bookmarklet/Greasemonkey script service. Yet this project mainly concerns a handy approach of accessing book information on your portalbe devices.
 
 You fill find a great convenience using the new website version of Douban-UESTC Library Mashup. Logging with your Google Accounts, we provide services to record your intended borrowing book list, to notify the deadline of borrowing, to automatically renew your books, and to sync your booklist on douban.com. (_some features are still under development_)
 
@@ -68,6 +68,7 @@ Please refer to the [issue list](http://github.com/killkeeper/Douban-UESTC-Libra
 # 豆瓣-电子科大图书馆馆藏查询 mobile (_a.k.a_ 郫县豆瓣.mobile)
 
 由Google App Engine驱动的移动站点, 基于豆瓣网和电子科大图书馆为您的手持设备浏览器提供图书信息和馆藏状态查询.
+你可以访问部署在GAE上的项目主页: [郫县豆瓣.mobile](http://dbutils.appspot.com/)
 
 > 本项目基于豆瓣-电子科大图书馆馆藏查询脚本(`http://tremblefrog.org/libdb/`)发展而来.
 > 不同于原来的Bookmarklet/Greasemonkey脚本, 这个项目致力于扩展应用的方便性和可用性.
