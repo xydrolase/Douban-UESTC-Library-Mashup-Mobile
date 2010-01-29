@@ -5,7 +5,7 @@ Douban & UESTC Library Mashup
 	
 	Author : killkeeper
 		killkeeper at gmail dot com
-		http://tremblefrog.org
+			http://tremblefrog.org 
 
 # Copyright 2010 killkeeper.
 #
