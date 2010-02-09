@@ -1,0 +1,5 @@
+/atom/
+/gdata/
+/douban/
+config.py
+*.pyc

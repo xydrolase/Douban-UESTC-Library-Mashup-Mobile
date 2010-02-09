@@ -23,13 +23,16 @@
 	
 	require('dorm_db.php');
 	
-	if (isset($_POST['isbn'])){
-	    $isbn = $_POST['isbn'];
-	    
-	    $libm = new LibraryMashUp($isbn);
-		$html = $libm->query_all();
+	define('QUERY_ISBN', 1);
+	define('QUERY_CALLNO', 2);
 	
-	    die($html);
+	if (isset($_POST['isbn'])){
+		$isbn = $_POST['isbn'];
+		
+		$libm = new LibraryMashUp($isbn, QUERY_ISBN);
+		$html = $libm->query_all_by_isbn();
+	
+		die($html);
 	}
 
 	class LibraryMashup{
@@ -37,46 +40,82 @@
 		var $cache_id;
 		var $book_title;
 		var $table_keywords = '<table width="100%" border="0" cellspacing="1" cellpadding="2" class="bibItems">';
+		var $callno_start_flag = '<!-- BEGIN INNER BIB TABLE -->';
 		
 		var $query_path = "http://222.197.164.247/search*chx";
 		
-		function LibraryMashup($isbn){
-		    $this->isbn_group = explode(',', $isbn);
-		    if (!is_array($this->isbn_group) || !count($this->isbn_group)){
-    	        die("{}");
-    	    }
-    	    
+		function LibraryMashup($meta, $query_type){
+			if ($query_type == QUERY_ISBN){
+				$this->isbn_group = explode(',', $meta);
+				if (!is_array($this->isbn_group) || !count($this->isbn_group)){
+					die("{}");
+				}
+				
+				$this->expires = 3600;	// Expires after 1 hour
+			}
+			else if($query_type == QUERY_CALLNO){
+				$this->callno_group = explode(',', $meta);
+				if (!is_array($this->callno_group) || !count($this->callno_group)){
+					die("{}");
+				}
+				
+				$this->expires = 3600 * 72;	// cache for 3 days	
+			}
+			
 			$this->memcache = new Memcache();
 			$this->memcache->connect('127.0.0.1',11211);	/* connect memcache for cache */
 		}
 		
-		function query_all(){
-		    $response_list = array();
-		    foreach($this->isbn_group as $entry){
-		        array_push($response_list, $this->query_by_isbn($entry));
-		    }
-		    
-		    return implode("<split />", $response_list);
+		function query_all($query_type){
+			$response_list = array();
+			if ($query_type == QUERY_ISBN){
+				$meta_group = $this->isbn_group;
+			}
+			else if ($query_type == QUERY_CALLNO){
+				$meta_group = $this->callno_group;
+			}
+			
+			foreach($meta_group as $entry){
+				array_push($response_list, $this->query($entry, $query_type));
+			}
+			
+			return implode("<split />", $response_list);
 		}
 		
-		function query_by_isbn($isbn){
-		    $isbn_list = explode('-', $isbn);
-		    $this->cache_id = 'libdb_isbn_'.$isbn;
-		    
-		    $cache = $this->memcache->get($this->cache_id);
-		    if ($cache){
-		        return $cache;
-		    }
-		    
-			$queries = array();
-			foreach($isbn_list as $isbn){
-			    $query = array( 'SORT' => 'D', 'searchscope' => 1, 'searchtype' => 'i', 'searcharg' => $isbn );
-			    array_push($queries, $query);
+		function query($meta, $query_type){
+			$queries = array();	/* Queries to execute for this entry */
+			
+			if ($query_type == QUERY_ISBN){
+				$isbn = $meta;
+				$isbn_list = explode('-', $isbn);
+				$this->cache_id = 'libdb_isbn_'.$isbn;
+				
+				$cache = $this->memcache->get($this->cache_id);
+				if ($cache){
+					return $cache;
+				}
+				
+				foreach($isbn_list as $_isbn){
+					$query = array( 'SORT' => 'D', 'searchscope' => 1, 'searchtype' => 'i', 'searcharg' => $_isbn );
+					array_push($queries, $query);
+				}
 			}
-						
+			else if ($query_type == QUERY_CALLNO){
+				$callno = $meta;
+				$this->cache_id = 'libdb_callno_'.md5($callno);
+				
+				$cache = $this->memcache->get($this->cache_id);	
+				if ($cache){
+					return $cache;
+				}
+				
+				$query = array( 'SORT' => 'D', 'searchscope' => 1, 'searchtype' => 'c', 'searcharg' => $callno );
+				array_push($queries, $query);
+			}
+					
 			$entity_found = false;
 			foreach($queries as $q){
-				$ret_val = $this->library_query($q);
+				$ret_val = $this->library_query_by_isbn($q, $query_type);
 				
 				if ($ret_val){
 					$entity_found = true;	/* found a corresponding entity in library */
@@ -87,14 +126,14 @@
 			if (!$entity_found){
 				/* still nothing */
 				$not_found_html = '{}';	
-				$this->memcache->set($this->cache_id, $not_found_html, false, 3600);	// cache for 1 hour :)
+				$this->memcache->set($this->cache_id, $not_found_html, false, $this->expires);	// cache for 1 hour :)
 					
 				return $not_found_html;
 			}
 					
 		}
 		
-		function library_query($params){
+		function library_query($params, $query_type){
 			$result = $this->http_post($this->query_path, $params);
 			
 			if (strpos($result, '未找到') !== false){
@@ -102,7 +141,13 @@
 				return null;
 			}
 			else{
-				$table_start = strpos($result, $this->table_keywords);
+				if ($query_type == QUERY_ISBN){
+					$table_start = strpos($result, $this->table_keywords);
+				}
+				else if ($query_type == QUERY_CALLNO){
+					$table_start = strpos($result, $this->callno_start_flag);
+				}
+				
 				if ($table_start !== false){
 					$table_end = strpos($result, '</table>', $table_start) + strlen('</table>');	// search with an offset
 					
@@ -113,7 +158,7 @@
 					
 					
 					/* insert into the cache */
-					$this->memcache->set($this->cache_id, $table_html, false, 3600);	// cache for 1 hour :)
+					$this->memcache->set($this->cache_id, $table_html, false, $this->expires);	// cache for 1 hour :)
 					
 					return $table_html;
 				}
