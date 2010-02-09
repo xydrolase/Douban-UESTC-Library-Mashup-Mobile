@@ -26,10 +26,23 @@
 	define('QUERY_ISBN', 1);
 	define('QUERY_CALLNO', 2);
 	
+	if (isset($_POST['meta']) && $_POST['meta']){
+		$meta_needed = true;
+	}
+	
 	if (isset($_POST['isbn'])){
 		$isbn = $_POST['isbn'];
 		
-		$libm = new LibraryMashUp($isbn, QUERY_ISBN);
+		$libm = new LibraryMashUp($isbn, QUERY_ISBN, $meta_needed);
+		$html = $libm->query_all_by_isbn();
+	
+		die($html);
+	}
+	
+	if (issset($_POST['callno'])){
+		$callno = $_POST['callno'];
+		
+		$libm = new LibraryMashUp($callno, QUERY_CALLNO, $meta_needed);
 		$html = $libm->query_all_by_isbn();
 	
 		die($html);
@@ -40,11 +53,11 @@
 		var $cache_id;
 		var $book_title;
 		var $table_keywords = '<table width="100%" border="0" cellspacing="1" cellpadding="2" class="bibItems">';
-		var $callno_start_flag = '<!-- BEGIN INNER BIB TABLE -->';
+		var $metadata_keywords = '<!-- BEGIN INNER BIB TABLE -->';
 		
 		var $query_path = "http://222.197.164.247/search*chx";
 		
-		function LibraryMashup($meta, $query_type){
+		function LibraryMashup($meta, $query_type, $meta_needed = false){
 			if ($query_type == QUERY_ISBN){
 				$this->isbn_group = explode(',', $meta);
 				if (!is_array($this->isbn_group) || !count($this->isbn_group)){
@@ -62,6 +75,7 @@
 				$this->expires = 3600 * 72;	// cache for 3 days	
 			}
 			
+			$this->metadata = $meta_needed;
 			$this->memcache = new Memcache();
 			$this->memcache->connect('127.0.0.1',11211);	/* connect memcache for cache */
 		}
@@ -115,7 +129,7 @@
 					
 			$entity_found = false;
 			foreach($queries as $q){
-				$ret_val = $this->library_query_by_isbn($q, $query_type);
+				$ret_val = $this->library_query_by_isbn($q);
 				
 				if ($ret_val){
 					$entity_found = true;	/* found a corresponding entity in library */
@@ -133,7 +147,7 @@
 					
 		}
 		
-		function library_query($params, $query_type){
+		function library_query($params){
 			$result = $this->http_post($this->query_path, $params);
 			
 			if (strpos($result, '未找到') !== false){
@@ -141,11 +155,11 @@
 				return null;
 			}
 			else{
-				if ($query_type == QUERY_ISBN){
-					$table_start = strpos($result, $this->table_keywords);
+				if ($this->metadata){
+					$table_start = strpos($result, $this->metadata_keywords) + strlen($this->metadata_keywords);
 				}
-				else if ($query_type == QUERY_CALLNO){
-					$table_start = strpos($result, $this->callno_start_flag);
+				else{
+					$table_start = strpos($result, $this->table_keywords);
 				}
 				
 				if ($table_start !== false){
@@ -155,7 +169,6 @@
 					
 					/* replace the relative hyperlink to a absolute link */
 					$table_html = preg_replace("/href=\"(.+)\"/i", "href=\"http://webpac.uestc.edu.cn\\1\"", $table_html);
-					
 					
 					/* insert into the cache */
 					$this->memcache->set($this->cache_id, $table_html, false, $this->expires);	// cache for 1 hour :)
