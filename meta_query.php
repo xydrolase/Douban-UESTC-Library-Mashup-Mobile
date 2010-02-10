@@ -26,6 +26,7 @@
 	define('QUERY_ISBN', 1);
 	define('QUERY_CALLNO', 2);
 	
+	$meta_needed = false;
 	if (isset($_POST['meta']) && $_POST['meta']){
 		$meta_needed = true;
 	}
@@ -34,16 +35,16 @@
 		$isbn = $_POST['isbn'];
 		
 		$libm = new LibraryMashUp($isbn, QUERY_ISBN, $meta_needed);
-		$html = $libm->query_all_by_isbn();
+		$html = $libm->query_all(QUERY_ISBN);
 	
 		die($html);
 	}
 	
-	if (issset($_POST['callno'])){
+	if (isset($_POST['callno'])){
 		$callno = $_POST['callno'];
 		
 		$libm = new LibraryMashUp($callno, QUERY_CALLNO, $meta_needed);
-		$html = $libm->query_all_by_isbn();
+		$html = $libm->query_all(QUERY_CALLNO);
 	
 		die($html);
 	}
@@ -117,6 +118,9 @@
 			else if ($query_type == QUERY_CALLNO){
 				$callno = $meta;
 				$this->cache_id = 'libdb_callno_'.md5($callno);
+				if ($this->metadata){
+					$this->cache_id .= '_meta';
+				}
 				
 				$cache = $this->memcache->get($this->cache_id);	
 				if ($cache){
@@ -129,7 +133,7 @@
 					
 			$entity_found = false;
 			foreach($queries as $q){
-				$ret_val = $this->library_query_by_isbn($q);
+				$ret_val = $this->library_query($q);
 				
 				if ($ret_val){
 					$entity_found = true;	/* found a corresponding entity in library */
@@ -156,7 +160,7 @@
 			}
 			else{
 				if ($this->metadata){
-					$table_start = strpos($result, $this->metadata_keywords) + strlen($this->metadata_keywords);
+					$table_start = strrpos($result, $this->metadata_keywords) + strlen($this->metadata_keywords);
 				}
 				else{
 					$table_start = strpos($result, $this->table_keywords);
