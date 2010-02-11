@@ -104,6 +104,9 @@
 				$isbn = $meta;
 				$isbn_list = explode('-', $isbn);
 				$this->cache_id = 'libdb_isbn_'.$isbn;
+				if ($this->metadata){
+					$this->cache_id .= '_meta';
+				}
 				
 				$cache = $this->memcache->get($this->cache_id);
 				if ($cache){

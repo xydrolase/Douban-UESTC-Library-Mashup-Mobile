@@ -24,3 +24,6 @@ TWITTER_API = 'http://twitter.com/'
 API_KEY = ''    # your douban API key
 SECRET = ''                     # corresponding secret
 SERVER = 'api.douban.com'
+
+LIBRARY_QUERY_API = 'http://tremblefrog.org/libdb/meta_query.php'
+LIBRARY_USER_API = 'http://tremblefrog.org/libdb/user_query.php'
