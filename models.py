@@ -21,6 +21,12 @@ class TaskList(db.Model):
 	user = db.UserProperty()
 	count = db.IntegerProperty(default=0)
 	
+class LibraryUser(db.Model):
+    user = db.UserProperty()
+    barcode = db.StringProperty()
+    password = db.StringProperty()
+    borrow_list = db.BlobProperty()     # for storing user's borrowing list
+	
 class BookTask(db.Model):
 	user = db.UserProperty()
 	blob = db.BlobProperty()		# for storing a Gdata object describing the book entry

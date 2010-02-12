@@ -47,12 +47,12 @@ class BaseHandler(webapp.RequestHandler):
             }
     
     def back(self):
-    	"""Redirect to the previous page the client was browsing"""
+        """Redirect to the previous page the client was browsing"""
         referer = self.request.headers.get('Referer', '/')
         self.redirect(referer)
-	
+    
     def terminate(self, errno):
-    	"""Renders error information to client"""
+        """Renders error information to client"""
         err_info = self.ERR_INFO.get(errno, '未知的程序错误')
         referer = self.request.headers.get('Referer', None)
         self.render_to_response('error.html', {'error': err_info, 'referer':referer})
@@ -78,7 +78,7 @@ class BaseHandler(webapp.RequestHandler):
         template_args.setdefault('user_login', user_logined)
         template_args.setdefault('user', user)
         template_args.setdefault('login_url',
-        	users.create_login_url(self.request.uri))
+            users.create_login_url(self.request.uri))
         template_args.setdefault('logout_url', users.create_logout_url('/'))
         
         self.response.out.write(
@@ -93,8 +93,17 @@ class AboutHandler(BaseHandler):
     def get(self):
         self.render_to_response('about.html', {})
 
+class DebugHandler(BaseHandler):
+    def get(self):
+        from google.appengine.api import mail
+        
+        libul = LibraryUserList('barcode', 'pin', user_api=LIBRARY_USER_API, query_api=LIBRARY_QUERY_API)
+        user_list, newly_borrowed, returned = libul.check_updates({})
+
+        self.render_to_response('debug.html', {'title': 'User List Debug', 'debug': repr(user_list)})
+
 class ReservationHandler(BaseHandler):
-	"""Retrieve books reservation status from library"""
+    """Retrieve books reservation status from library"""
     def get(self, isbn):
         key = '_'.join(['libdb', isbn])
         blob = memcache.get(key)
@@ -102,7 +111,7 @@ class ReservationHandler(BaseHandler):
         if not blob:
             # Cache expires
             try:
-                libm = LibraryMashup()
+                libm = LibraryMashup(api=LIBRARY_QUERY_API)
                 uri = "/book/subject/isbn/%s" % isbn.split('-')[0]
                 blob = client.GetBook(uri)
                 if blob and blob.title.text:
@@ -126,17 +135,17 @@ class ReservationHandler(BaseHandler):
         
         user = users.get_current_user()
         task = BookTask.all().filter('user = ', user)\
-        		.filter('index = ', inq_no).get() if user else None
+                .filter('index = ', inq_no).get() if user else None
         
         self.render_to_response('loc.html', {'entry': blob, 'inq_no': inq_no, 'task': task})
 
 class CollectionHandler(BaseHandler):
-	"""Handles reqeusts for updating users' borrowing collections"""
+    """Handles reqeusts for updating users' borrowing collections"""
     def get(self, param):
-    	"""GET /collect|remove/ISBN
-    	
-    	Creates or deletes an entry in user's collection with specific ISBN	
-    	"""
+        """GET /collect|remove/ISBN
+        
+        Creates or deletes an entry in user's collection with specific ISBN	
+        """
         req_path = self.request.path
         if req_path.startswith("/collect/"):
             self.collect(param)
@@ -144,11 +153,11 @@ class CollectionHandler(BaseHandler):
             self.remove(param)
     
     def post(self):
-    	"""POST /collect|remove/
-    	POST BODY: ?
-    	"""
-    	
-    	pass
+        """POST /collect|remove/
+        POST BODY: ?
+        """
+        
+        pass
             
     def remove(self, isbn):
         user = users.get_current_user()
@@ -215,9 +224,10 @@ class MineHandler(BaseHandler):
         if not user: 
             self.back()
             return
-    
+        
         tasklist = TaskList.all().filter('user = ', user).get()
         if tasklist and tasklist.count:
+            libm = LibraryMashup(api=LIBRARY_QUERY_API)
             books = []
             isbn_group = []
             for task in tasklist.tasks:
@@ -227,7 +237,7 @@ class MineHandler(BaseHandler):
                 isbn_group.append("-".join(task.isbn))
                 book.floor, book.category = parse_index(book.index)
                 books.append(book)
-			
+            
             isbn_query = ",".join(isbn_group)
             result_list = libm.query(isbn_query)
             
@@ -256,7 +266,7 @@ class SearchHandler(BaseHandler):
         else: 
             index = int(index)
         
-        libm = LibraryMashup()
+        libm = LibraryMashup(api=LIBRARY_QUERY_API)
             
         if method == 'isbn':
             uri = '/book/subject/isbn/%s' % keyword
@@ -296,7 +306,7 @@ class SearchHandler(BaseHandler):
                 result_list = libm.query(isbn)
                 
                 if not result_list: # if result is None, it means we encounter some errors
-                    self.terminate(ERR_FAILED_URLFETCH)
+                    self.terminate(ERR_URLFETCH_FAILED)
                     return
                 
                 for x in range(len(result_list)):
@@ -305,25 +315,25 @@ class SearchHandler(BaseHandler):
                     cache_blob(bk) # write to cache
                     
             self.render_to_response('query.html', 
-            		{'feed': feed,  'keyword': keyword, 
-            		'index': int(index), 'pager': pager})
+                    {'feed': feed,  'keyword': keyword, 
+                    'index': int(index), 'pager': pager})
 
 def hack_gdata(entry):
     entry.isbn = [attr.text for attr in entry.attribute \
-    	if attr.name in ('isbn10', 'isbn13')]
+        if attr.name in ('isbn10', 'isbn13')]
     entry.isbn_string = "-".join(entry.isbn)
     entry.author_list = ', '.join([author.name.text for author in entry.author])
     
     for link in entry.link:
-    	if link.rel == 'alternate':
-    		# replace the standard douban URL to mobile URL
-    		link.href = re.sub('www.douban.com', 'm.douban.com', link.href)
+        if link.rel == 'alternate':
+            # replace the standard douban URL to mobile URL
+            link.href = re.sub('www.douban.com/subject/', 'm.douban.com/book/subject/', link.href)
     
     attr_list = []
     for attr in entry.attribute:
         if attr.name in ATTR2NAME:
             attr_list.append( '<span class="tag">%s</span>: %s' %\
-            	 (ATTR2NAME[attr.name], attr.text) )
+                 (ATTR2NAME[attr.name], attr.text) )
     
     entry.attributes = ' / '.join(attr_list)
 
@@ -347,6 +357,7 @@ def main():
     ('/collect/(.+)', CollectionHandler),
     ('/remove/(.+)', CollectionHandler),
     ('/mine/', MineHandler),
+    ('/userlist/', DebugHandler)
   ], debug=True)
   util.run_wsgi_app(application)
 

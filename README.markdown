@@ -63,8 +63,6 @@ Please refer to the [issue list](http://github.com/killkeeper/Douban-UESTC-Libra
 * [UESTC Library](http://www.lib.uestc.edu.cn/)
 * [Webpac System](http://webpac.uestc.edu.cn/)
 
-- - -
-
 # 豆瓣-电子科大图书馆馆藏查询 mobile (_a.k.a_ 郫县豆瓣.mobile)
 
 由Google App Engine驱动的移动站点, 基于豆瓣网和电子科大图书馆为您的手持设备浏览器提供图书信息和馆藏状态查询.
